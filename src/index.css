@@ -1,0 +1,522 @@
+:root {
+  --color-text: #1c1e2b;
+  --color-text-muted: #6b7080;
+
+  --accent: #4655e6;
+  --accent-strong: #3742c4;
+  --accent-soft: rgba(70, 85, 230, 0.16);
+
+  --missing: #e6493f;
+  --missing-soft: rgba(230, 73, 63, 0.18);
+
+  /* Liquid glass surfaces: translucent, blurred, lightly bordered,
+     with a soft top highlight to read as curved glass, not flat paint. */
+  --glass-bg: rgba(255, 255, 255, 0.46);
+  --glass-bg-strong: rgba(255, 255, 255, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-highlight: rgba(255, 255, 255, 0.85);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 95, 0.14), 0 1px 1px rgba(255, 255, 255, 0.6) inset,
+    0 -1px 1px rgba(31, 38, 95, 0.04) inset;
+  --glass-shadow-lg: 0 20px 60px rgba(31, 38, 95, 0.18), 0 1px 1px rgba(255, 255, 255, 0.7) inset;
+  --glass-blur: blur(24px) saturate(180%);
+
+  --ease-glass: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Two radii cover every non-pill shape in the app, chosen so a control
+     nested inside a surface reads as concentric (surface radius minus its
+     own padding ≈ control radius) instead of clashing curves. Pills are
+     the one deliberate exception, reserved for nav/buttons/selects that
+     are meant to read as capsules. */
+  --radius-control: 14px;
+  --radius-surface: 22px;
+  --radius-pill: 999px;
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--color-text);
+  font-family: 'Vazirmatn Variable', 'Vazirmatn', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+
+  /* Apple-style mesh gradient: soft color blobs, fixed so glass panels
+     always have something rich to refract as the page scrolls. */
+  background-color: #eef0fb;
+  background-image:
+    radial-gradient(38% 32% at 12% 8%, rgba(120, 140, 255, 0.55), transparent 70%),
+    radial-gradient(42% 38% at 88% 12%, rgba(255, 150, 210, 0.45), transparent 70%),
+    radial-gradient(46% 42% at 20% 92%, rgba(140, 230, 255, 0.5), transparent 70%),
+    radial-gradient(40% 40% at 92% 88%, rgba(180, 150, 255, 0.5), transparent 70%),
+    linear-gradient(180deg, #eef0fb 0%, #e7ebfb 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 1.25rem 4rem;
+}
+
+.error-boundary {
+  max-width: 480px;
+  margin: 4rem auto;
+  padding: 2rem;
+  border-radius: var(--radius-surface);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.error-boundary p {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ---------- Glass surface base ---------- */
+
+.glass {
+  position: relative;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--glass-highlight) 0%, rgba(255, 255, 255, 0) 40%);
+  opacity: 0.35;
+}
+
+/* ---------- Nav ---------- */
+
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: 760px;
+  margin: 1.25rem auto 1rem;
+  padding: 0.6rem 0.9rem;
+  flex-wrap: wrap;
+  border-radius: var(--radius-pill);
+}
+
+.nav-bar__brand {
+  display: flex;
+  align-items: center;
+  padding-inline-start: 0.4rem;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-bar__logo {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
+.nav-bar__links {
+  display: flex;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-pill);
+  padding: 0.25rem;
+}
+
+.nav-bar__links a {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-pill);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.35s var(--ease-glass), background 0.35s var(--ease-glass),
+    box-shadow 0.35s var(--ease-glass);
+}
+
+.nav-bar__links a.is-active {
+  color: #fff;
+  background: linear-gradient(160deg, var(--accent) 0%, var(--accent-strong) 100%);
+  box-shadow: 0 4px 14px rgba(70, 85, 230, 0.4), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
+}
+
+.nav-bar__links a:focus-visible {
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* ---------- Page header ---------- */
+
+.page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0.5rem 0 1.5rem;
+  flex-wrap: wrap;
+}
+
+.language-select {
+  appearance: none;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  color: var(--accent-strong);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.55rem 2.2rem 0.55rem 1.1rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  box-shadow: var(--glass-shadow);
+  background-image: linear-gradient(45deg, transparent 50%, var(--accent-strong) 50%),
+    linear-gradient(135deg, var(--accent-strong) 50%, transparent 50%);
+  background-position: calc(100% - 1.1rem) center, calc(100% - 0.75rem) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.25s var(--ease-glass), box-shadow 0.25s var(--ease-glass);
+}
+
+.language-select:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--glass-shadow-lg);
+}
+
+.language-select:focus-visible {
+  box-shadow: var(--glass-shadow), 0 0 0 3px var(--accent-soft);
+}
+
+/* ---------- Dashboard panel ---------- */
+
+.dashboard {
+  /* Room for the fixed action bar so the last row is never hidden behind it. */
+  padding-bottom: 6rem;
+}
+
+.dashboard__panel {
+  border-radius: var(--radius-surface);
+  padding: 0.4rem 1.4rem;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+/* Pinned to the viewport (not the content column) so "+ Add Keyword" stays
+   reachable no matter how far the list has been scrolled — only the page
+   content scrolls underneath it. */
+.dashboard__action-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 760px;
+  z-index: 20;
+  padding: 1.5rem 1.25rem calc(1rem + env(safe-area-inset-bottom));
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(238, 240, 251, 0) 0%,
+    rgba(233, 236, 251, 0.92) 45%,
+    rgba(233, 236, 251, 0.98) 100%
+  );
+}
+
+.dashboard__action-bar .btn {
+  pointer-events: auto;
+  width: 100%;
+}
+
+.keyword-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.keyword-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.95rem 0;
+  border-bottom: 1px solid rgba(31, 38, 95, 0.08);
+}
+
+.keyword-row:last-child {
+  border-bottom: none;
+}
+
+.keyword-row__handle {
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: grab;
+  font-size: 1.15rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: var(--radius-control);
+  touch-action: none;
+  transition: background 0.2s var(--ease-glass), color 0.2s var(--ease-glass);
+}
+
+.keyword-row__handle:hover {
+  background: rgba(70, 85, 230, 0.1);
+  color: var(--accent-strong);
+}
+
+.keyword-row__handle:active {
+  cursor: grabbing;
+}
+
+.keyword-row__key {
+  flex: 1;
+  min-width: 0;
+  font-size: 1.05rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  overflow-wrap: anywhere;
+}
+
+.keyword-row__key.is-missing {
+  color: var(--missing);
+  font-weight: 600;
+}
+
+.keyword-row__input {
+  flex: 1.2;
+  min-width: 0;
+  border: 1px solid rgba(31, 38, 95, 0.1);
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--radius-control);
+  padding: 0.65rem 0.9rem;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--color-text);
+  transition: background 0.25s var(--ease-glass), box-shadow 0.25s var(--ease-glass),
+    border-color 0.25s var(--ease-glass);
+}
+
+.keyword-row__input:hover {
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.keyword-row__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #fff;
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.keyword-row__input.is-missing {
+  background: linear-gradient(160deg, rgba(255, 120, 108, 0.9), rgba(230, 73, 63, 0.85));
+  border-color: rgba(230, 73, 63, 0.5);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(230, 73, 63, 0.3), 0 1px 0 rgba(255, 255, 255, 0.35) inset;
+}
+
+.keyword-row__input.is-missing::placeholder {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.keyword-row__input.is-missing:focus {
+  box-shadow: 0 0 0 4px var(--missing-soft);
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  padding: 0.8rem 1.4rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.25s var(--ease-glass), box-shadow 0.25s var(--ease-glass),
+    background 0.25s var(--ease-glass);
+}
+
+.btn:focus-visible {
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.btn--primary {
+  color: #fff;
+  background: linear-gradient(160deg, #5c6bff 0%, var(--accent) 55%, var(--accent-strong) 100%);
+  box-shadow: 0 10px 30px rgba(70, 85, 230, 0.4), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
+}
+
+.btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(70, 85, 230, 0.48), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+
+.btn--primary:active {
+  transform: translateY(0);
+}
+
+.btn--ghost {
+  background: rgba(255, 255, 255, 0.4);
+  border-color: var(--glass-border);
+  color: var(--color-text-muted);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--color-text);
+}
+
+.btn--block {
+  display: block;
+  width: 100%;
+}
+
+/* ---------- Add keyword form ---------- */
+
+.add-keyword-form {
+  border-radius: var(--radius-surface);
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.add-keyword-form__row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.add-keyword-form label {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+.add-keyword-form input,
+.add-keyword-form select {
+  border: 1px solid rgba(31, 38, 95, 0.1);
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-control);
+  padding: 0.65rem 0.9rem;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--color-text);
+  font-weight: 400;
+  transition: box-shadow 0.25s var(--ease-glass), border-color 0.25s var(--ease-glass);
+}
+
+.add-keyword-form input:focus,
+.add-keyword-form select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.add-keyword-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* ---------- Public view ---------- */
+
+.keyword-card-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.1rem;
+}
+
+.keyword-card {
+  border-radius: var(--radius-surface);
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: transform 0.35s var(--ease-glass), box-shadow 0.35s var(--ease-glass),
+    background 0.35s var(--ease-glass);
+}
+
+.keyword-card:hover {
+  transform: translateY(-4px);
+  background: var(--glass-bg-strong);
+  box-shadow: var(--glass-shadow-lg);
+}
+
+.keyword-card__key {
+  font-weight: 700;
+  font-size: 1.2rem;
+  text-transform: capitalize;
+}
+
+.keyword-card__translation {
+  font-size: 1.05rem;
+  color: var(--color-text);
+}
+
+.keyword-card__empty {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+@media (max-width: 640px) {
+  .keyword-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .keyword-row {
+    flex-wrap: wrap;
+  }
+
+  .keyword-row__key {
+    flex-basis: 100%;
+  }
+
+  .keyword-row__input {
+    flex-basis: 100%;
+  }
+
+  .nav-bar {
+    margin: 1rem auto;
+  }
+}

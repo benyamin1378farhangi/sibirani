@@ -1,9 +1,8 @@
 # Sib Irani – Translation Management Tool
 
 An internal tool for managing interface keyword translations, built for the
-Front-End Developer (React) technical assignment.
-
-Two pages, one shared source of truth:
+Front-End Developer (React) technical assignment. It has two pages that
+share the same data:
 
 - **Management Dashboard** (`/`) — the team edits translations, adds new
   keywords, and reorders the list by dragging.
@@ -15,9 +14,11 @@ Two pages, one shared source of truth:
 - React 18 + JavaScript (no TypeScript), scaffolded with Vite
 - React Router for the two routes
 - React Context (`TranslationsContext`) for shared state — no prop drilling
-- `@dnd-kit` for accessible drag-and-drop reordering (pointer + keyboard)
-- Plain CSS (no UI framework), responsive with CSS Grid/Flexbox, styled as
-  an Apple-style "liquid glass" UI (see [UI/UX enhancements](#uiux-enhancements))
+- `@dnd-kit` for accessible drag-and-drop reordering (pointer + keyboard
+  sensors)
+- Plain CSS (no UI framework), responsive with CSS Grid/Flexbox, with a
+  glass/frosted visual treatment on top of the provided design (see
+  [UI/UX enhancements](#uiux-enhancements))
 - Self-hosted Vazirmatn variable font (`@fontsource-variable/vazirmatn`)
 
 ## Setup
@@ -53,9 +54,9 @@ src/
   pages/PublicView.jsx
 ```
 
-State, logic and presentation are kept separate: the context owns state and
-mutations, pages compose components, and components only read from
-`useTranslations()` and render.
+State, logic and presentation are kept separate: the context owns shared
+state and mutations, pages compose the UI, and components use
+`useTranslations()` where they need access to shared state and actions.
 
 ## Data model
 
@@ -68,30 +69,34 @@ mutations, pages compose components, and components only read from
 }
 ```
 
+`id` is the stable identifier for each keyword, while `key` represents the
+actual interface keyword. New keywords are currently created through the
+dashboard, and duplicate keyword validation is not implemented.
+
 The array's order **is** the display order — reordering just moves an
 element in the array before it's persisted, so both pages always render in
 the same order without a separate `order` field to keep in sync.
 
 ## Persistence
 
-The full `keywords` array is written to `localStorage` (key
-`sibirani.translations.v1`) on every change via a `useEffect` in the
-provider. On load, `utils/storage.js` reads and `JSON.parse`s the entry
-inside a `try/catch`; if the key is missing, not valid JSON, or not an
-array, it silently falls back to the seed data instead of throwing.
+The full `keywords` array is stored as JSON in `localStorage` (key
+`sibirani.translations.v1`) and updated whenever the dataset changes. On
+startup, invalid or missing data falls back to the seed dataset instead of
+breaking the application.
 
 ## Assumptions
 
-- The three pre-set languages plus one extra (English, Persian, Arabic,
-  French) are enough to demonstrate "at least three languages" and an
-  empty-translation state; more can be added by extending
-  `data/languages.js` (see written answer #1).
+- The initial dataset covers four languages — English, Persian, Arabic,
+  and French — which satisfies the "at least three languages" requirement
+  and gives enough room to demonstrate missing translations. More can be
+  added by extending `data/languages.js` (see written answer #1).
 - "Editing an existing translation" and "adding a translation for a
   language that was empty" are the same action (an inline text input) —
   there's no separate empty vs. filled UI state, matching the design.
-- The keyword's canonical English text (`key`) doubles as its display
-  label and its id-ish reference; new keywords are only created through
-  the dashboard, so uniqueness isn't currently enforced (see below).
+- `id` is used as the stable identifier for each keyword, while `key`
+  represents the actual interface keyword. New keywords are currently
+  created through the dashboard, and duplicate keyword validation is not
+  implemented.
 - Layout follows the provided designs closely; spacing, colors, and the
   card-based public view were reproduced from the screenshots with small
   refinements for empty/missing states.
@@ -107,8 +112,8 @@ implementation small and easy to review:
   reordering beyond dnd-kit's built-in keyboard sensor, and unit tests.
 - Duplicate-keyword validation on add.
 
-None of these affect the core requirements; happy to add any of them as a
-follow-up.
+I kept these out intentionally to stay within the assignment scope and
+time limit.
 
 ## Written answers
 
@@ -186,66 +191,32 @@ dataset.
 
 Built closely following the `Management Dashboard.png` and
 `Public View Page.png` mockups from the assignment archive — layout,
-colors, and the missing-translation highlight all match the designs.
+colors, and the missing-translation highlight all match the provided
+designs.
 
 ## UI/UX enhancements
 
-Beyond the base requirements, the interface was iterated on for a more
-polished, brand-appropriate feel:
+Beyond the core requirements, I made a few UI and usability improvements:
 
-- **Vazirmatn font.** Self-hosted via `@fontsource-variable/vazirmatn`
-  (a single variable-weight file covering the Latin and Arabic/Persian
-  subsets, no external CDN at runtime) and set as the app-wide typeface —
-  it reads well in both Persian and English, which matters since both
-  scripts appear side by side throughout the UI.
-- **Liquid glass UI.** Restyled the interface around an Apple-style
-  "liquid glass" look: a soft, fixed mesh-gradient background sits behind
-  every panel, and a shared `.glass` treatment
-  (`backdrop-filter: blur() saturate()`, a translucent white fill, a thin
-  light border, and a soft top highlight) is applied to the nav bar,
-  dashboard panel, add-keyword form, and public-view cards so they read
-  as frosted glass over the gradient rather than flat, opaque cards.
-- **Sib Irani logo in the header.** Replaced the plain text brand label
-  in the nav bar with the actual Sib Irani logo (`assets/logo-sib-irani.webp`),
-  linked back to the dashboard.
-- **Consistent border-radius scale.** Every rounded corner in the app now
-  comes from exactly two tokens plus one deliberate exception:
-  `--radius-control` (14px, for inputs and small buttons),
-  `--radius-surface` (22px, for panels/cards/forms — sized so a control
-  nested inside a surface reads as concentric rather than clashing), and
-  `--radius-pill` (999px, reserved for elements meant to look like true
-  capsules: nav bar, buttons, language select). Previously these radii
-  were set ad hoc per component and didn't line up visually.
-- **Fixed a focus-outline bug.** Clicking a nav link (e.g. switching from
-  Dashboard to Public View) briefly showed the browser's default focus
-  outline, which is a plain rectangle and doesn't respect `border-radius`
-  — so it visibly poked out past the pill's rounded corners for a frame.
-  Fixed by disabling the native outline on interactive glass elements
-  (`outline: none` + `-webkit-tap-highlight-color: transparent`) and
-  replacing it with a `box-shadow`-based `:focus-visible` ring, which
-  *does* follow the element's own border-radius.
-- **Localized empty-translation state.** The Public View previously
-  always showed the English string "No translation yet" regardless of
-  the active language. Each language in `data/languages.js` now carries
-  its own `emptyStateText` (e.g. Persian shows "هنوز ترجمه نشده است",
-  Arabic shows "لم تتم الترجمة بعد"), so a reader never sees English
-  copy embedded in an otherwise fully localized page.
-- **Fixed a white-screen crash on LAN/mobile testing.** `addKeyword` used
-  `crypto.randomUUID()` for new ids. That API only exists in a *secure
-  context* (HTTPS, or `localhost`) — opening the dev server from a phone
-  via its LAN IP (`http://192.168.x.x:5173`) is plain HTTP, so
-  `crypto.randomUUID` is `undefined` there. Calling it threw inside the
-  submit handler, and with no error boundary in the tree the whole app
-  unmounted to a blank white page. Fixed in two layers: `utils/id.js` now
-  generates ids with `crypto.randomUUID()` when available and falls back
-  to a timestamp+random string when it isn't, and `ErrorBoundary.jsx`
-  wraps the app so any future unexpected render error shows a recoverable
-  message instead of a blank screen (existing `localStorage` data is
-  untouched either way).
-- **Fixed action bar for "+ Add Keyword".** The button used to sit at the
-  end of the keyword list, so on a long list it was invisible until you
-  scrolled all the way down. It's now pinned to the bottom of the
-  viewport (`position: fixed`, matching the content column's width) with
-  a soft gradient fade behind it, while the keyword list itself scrolls
-  normally underneath. Opening the form scrolls it smoothly into view
-  from wherever the button was tapped.
+- **Vazirmatn font.** Self-hosted through `@fontsource-variable/vazirmatn`
+  for consistent Persian and English typography without relying on an
+  external CDN.
+- **Glass-style UI.** Added a lightweight glass/frosted visual treatment
+  to the main surfaces while keeping the layout close to the provided
+  designs.
+- **Sib Irani branding.** Added the provided Sib Irani logo to the
+  navigation header.
+- **Responsive layout.** The dashboard and public view adapt to smaller
+  screens using CSS Grid/Flexbox.
+- **Localized empty states.** Missing translations use the active
+  language's empty-state message instead of always displaying English
+  text.
+- **Accessibility.** Drag-and-drop uses `@dnd-kit` with pointer and
+  keyboard sensors, and interactive elements have visible
+  `:focus-visible` states.
+- **Mobile testing.** Added a fallback for keyword IDs when
+  `crypto.randomUUID()` is unavailable outside a secure context, and an
+  Error Boundary to prevent unexpected errors from resulting in a blank
+  screen.
+- **Add Keyword action.** Kept the add-keyword action accessible while
+  scrolling through a longer keyword list.
